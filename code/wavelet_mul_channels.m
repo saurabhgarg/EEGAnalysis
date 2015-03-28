@@ -14,19 +14,30 @@ clear; clc
 %         'rbio2.2', 'rbio2.4' , 'rbio2.6', 'rbio2.8'
 %         'rbio3.1', 'rbio3.3' , 'rbio3.5', 'rbio3.7'
 %         'rbio3.9', 'rbio4.4' , 'rbio5.5', 'rbio6.8'.
-[controls_dir]=dir('C:\Users\sgarg\Documents\Data\Controls\');
 
+control_directory = 'C:\Users\Arnold Yeung\Documents\UBC\Department of Physical Therapy, Synaptic Analysis Consulting Group\EEG Data\New Data\Controls';
+[controls_dir]=dir(control_directory);
+
+E= ['E01'; 'E02'; 'E03'; 'E04'; 'E05'; 'E06'; 'E07'; 'E08'; 'E09'; 'E10'; 'E11'; 'E12'; 'E13'; 'E14'; 'E15'; 'E16'; 'E17'; 'E18'; 'E19'; 'E20';
+    'E21'; 'E22'; 'E23'; 'E24'; 'E25'; 'E26'; 'E27'; 'E28'; 'E29'; 'E30'; 'E31'; 'E32'; 'E33'; 'E34'; 'E35'; 'E36'; 'E37'; 'E38'; 'E39'; 'E40'; 
+    'E41'; 'E42'; 'E43'; 'E44'; 'E45'; 'E46'; 'E47'; 'E48'; 'E49'; 'E50';'E51'; 'E52'; 'E53'; 'E54'; 'E55'; 'E56'; 'E57'; 'E58'; 'E59'; 'E60'; 
+    'E61'; 'E62'; 'E63'; 'E64'];
 waveletFunction = 'db8' ; % waveletFunction = 'db8'  'sym8' ;
 kfold=5;
 testeval=[];
 features=[];
+waveFea=[];
+
+fprintf('\n Starting Controls...\n');
 
 subj_num=1;
 % For each subject
 for file = controls_dir'
-    if (file.name ~= '.' | file.name ~= '..')
+    if(strcmp(file.name, '.') == 0 && strcmp(file.name,'..') == 0 && strcmp(file.name, 'desktop.ini') == 0)
+        
+        fprintf('Now on: %s...\n', file.name);
         %reading filename from the besa saved output
-        S2=load(strcat(strcat(strcat(strcat('C:\Users\sgarg\Documents\Data\Controls\',file.name),'\Matlab\control_',file.name),'_x')));
+        S2=load(strcat(control_directory, '\', file.name, '\matlab.mat'));
         besa_output=eval(strcat(strcat('S2.control_',file.name),'_x'));
         [rows, NumOfElectrodes]=size(besa_output);
         colstart=0;
@@ -35,19 +46,25 @@ for file = controls_dir'
             feature = extract_features(besa_output,j, waveletFunction);
             [rows, cols] = size(feature);
             features(subj_num,colstart+1:colstart+cols)=feature;
+            waveFea(subj_num).E(j,:) = feature;
             colstart = colstart+cols;
         end
         labels(subj_num,:)=1;
         subj_num=subj_num+1;
     end
 end
-    
-[concussion_dir]=dir('C:\Users\sgarg\Documents\Data\Concussion\');
+
+fprintf('\n Starting Concussed...\n');
+
+concuss_directory = 'C:\Users\Arnold Yeung\Documents\UBC\Department of Physical Therapy, Synaptic Analysis Consulting Group\EEG Data\New Data\Concussion';
+[concussion_dir]=dir(concuss_directory);
 for file = concussion_dir'
     % waveletFunction = 'db8'  'sym8'
-    if (file.name ~= '.' | file.name ~= '..')
+    if(strcmp(file.name, '.') == 0 && strcmp(file.name,'..') == 0 && strcmp(file.name, 'desktop.ini') == 0)
+        
+        fprintf('Now on: %s...\n', file.name);
         %reading filename from the besa saved output
-        S1=load(strcat(strcat(strcat(strcat('C:\Users\sgarg\Documents\Data\Concussion\',file.name),'\Matlab\concussed_',file.name),'_x')));
+        S1=load(strcat(concuss_directory, '\', file.name, '\matlab.mat'));
         besa_output=eval(strcat(strcat('S1.concussed_',file.name),'_x'));
         [rows, NumOfElectrodes]=size(besa_output);
         colstart=0;
@@ -57,11 +74,14 @@ for file = concussion_dir'
             [rows, cols] = size(feature);
             features(subj_num,colstart+1:colstart+cols)=feature;
             colstart = colstart+cols;
+            waveFea(subj_num).E(j,:) = feature;
         end
         labels(subj_num,:)=2;
         subj_num=subj_num+1;
     end
 end
+
+
 
 %Noramalize each feauture vector
 [rows, cols]=size(features);
@@ -70,6 +90,8 @@ for i=1:cols
     sd=std(features(:,i));
     features(:,i)=(features(:,i)-mn)/sd;
 end
+
+fprintf('\nData normalized...\n');
 
 %k fold cross-validation
 indices = crossvalind('Kfold',labels,kfold);
@@ -81,3 +103,4 @@ for i = 1:kfold
     testeval = [testeval sum(abs(true_labels-out_labels))];
 end
 
+fprintf('K fold cross-validation completed...\n');
