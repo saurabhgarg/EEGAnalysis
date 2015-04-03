@@ -7,19 +7,37 @@ E= ['E01'; 'E02'; 'E03'; 'E04'; 'E05'; 'E06'; 'E07'; 'E08'; 'E09'; 'E10'; 'E11';
 numElectrode=27;
 numFeatures=351;
 feature=[];
-for i=1:numElectrode
-    feature(1:48,i)=feats3D.(E(i,:))(:,1);
-end
-
 kfold=5;
 testeval=[];
-
-%k fold cross-validation
-indices = crossvalind('Kfold',labels,kfold);
-for i = 1:kfold
-    test = (indices == i); train = ~test;
-    SVMStruct  = svmtrain (feature(train,:), labels(train,:));
-    out_labels  = svmclassify(SVMStruct, feature(test,:));
-    true_labels=labels(test,:);
-    testeval = [testeval sum(abs(true_labels-out_labels))];
+for j=1:numFeatures
+    for i=1:numElectrode
+        feature(1:48,i)=feats3D.(E(i,:))(:,j);
+    end
+    
+    %k fold cross-validation
+    indices = crossvalind('Kfold',labels,kfold);
+    for i = 1:kfold
+        test = (indices == i); train = ~test;
+        SVMStruct  = svmtrain (feature(train,:), labels(train,:));
+        out_labels  = svmclassify(SVMStruct, feature(test,:));
+        true_labels=labels(test,:);
+        testeval = [testeval sum(abs(true_labels-out_labels))];
+    end
 end
+
+%%Random forest for electrode classification:
+%TODO: reduce features related to power analysis
+%TODO: create N trees per electrode
+%NVarToSample  property
+%OOBPermutedVarDeltaError -> feature importance
+NTrees = 1000;
+B = TreeBagger(NTrees,features,labels,'OOBPred','on' ,'OOBVarImp','on');
+[Y,scores] = predict(B,Testfeature);
+%use scores to calculate the probability of it belonging to a class
+
+%%Feature selection
+varRanking = zeros( NTrees  , size(features,2) ) ; 
+
+for i=1:NTrees    
+   [ val ,varRanking( i , :) ]= sort( varimportance( B.Trees{i}) ,'descend')    
+end 
