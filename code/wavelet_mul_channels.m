@@ -15,6 +15,8 @@ clear; clc
 %         'rbio3.1', 'rbio3.3' , 'rbio3.5', 'rbio3.7'
 %         'rbio3.9', 'rbio4.4' , 'rbio5.5', 'rbio6.8'.
 
+
+
 control_directory = 'C:\Users\Arnold Yeung\Documents\UBC\Department of Physical Therapy, Synaptic Analysis Consulting Group\EEG Data\New Data\Controls';
 [controls_dir]=dir(control_directory);
 
@@ -31,6 +33,9 @@ waveFea=[];
 fprintf('\n Starting Controls...\n');
 
 subj_num=1;
+
+control_directory = 'C:\Users\Arnold Yeung\Documents\UBC\Department of Physical Therapy, Synaptic Analysis Consulting Group\EEG Data\New Data\Controls';
+[controls_dir]=dir(control_directory);
 % For each subject
 for file = controls_dir'
     if(strcmp(file.name, '.') == 0 && strcmp(file.name,'..') == 0 && strcmp(file.name, 'desktop.ini') == 0)
@@ -81,6 +86,32 @@ for file = concussion_dir'
     end
 end
 
+fprintf('\n Starting Shaun...\n');
+
+shaun_directory = 'C:\Users\Arnold Yeung\Documents\UBC\Department of Physical Therapy, Synaptic Analysis Consulting Group\EEG Data\New Shaun Data';
+[shaun_dir]=dir(shaun_directory);
+for file = shaun_dir'
+    % waveletFunction = 'db8'  'sym8'
+    if(strcmp(file.name, '.') == 0 && strcmp(file.name,'..') == 0 && strcmp(file.name, 'desktop.ini') == 0)
+        
+        fprintf('Now on: %s...\n', file.name);
+        %reading filename from the besa saved output
+         S3=load(strcat(shaun_directory, '\', file.name, '\matlab.mat'));
+        besa_output=eval(strcat(strcat('S3.concussed_',file.name),'_x'));
+        [rows, NumOfElectrodes]=size(besa_output);
+        colstart=0;
+        for j = 1:NumOfElectrodes
+            %Feature computation
+            feature = extract_features(besa_output,j, waveletFunction);
+            [rows, cols] = size(feature);
+            features(subj_num,colstart+1:colstart+cols)=feature;
+            colstart = colstart+cols;
+            waveFea(subj_num).E(j,:) = feature;
+        end
+        labels(subj_num,:)=2;
+        subj_num=subj_num+1;
+    end
+end
 
 
 %Noramalize each feauture vector
