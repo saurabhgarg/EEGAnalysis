@@ -17,7 +17,7 @@ for iElect = 1:numElectrodes
         X=quant(data(iFeat,:)); % quantize the data
         Hx=entropyF(X);
         Hxy=jointentropy(X,Y);
-        MI(iElect) = MI(iElect) + (Hx + Hy - Hxy);
+        MI(iElect) = MI(iElect) + (Hx + Hy - Hxy); % sum mutual info over all features
     end
 end
 

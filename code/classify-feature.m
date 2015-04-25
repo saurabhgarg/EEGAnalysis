@@ -35,9 +35,15 @@ B = TreeBagger(NTrees,features,labels,'OOBPred','on' ,'OOBVarImp','on');
 [Y,scores] = predict(B,Testfeature);
 %use scores to calculate the probability of it belonging to a class
 
+oobErrorBaggedEnsemble = oobError(B);
+plot(oobErrorBaggedEnsemble)
+xlabel 'Number of grown trees';
+ylabel 'Out-of-bag classification error';
+
 %%Feature selection
 varRanking = zeros( NTrees  , size(features,2) ) ; 
 
 for i=1:NTrees    
    [ val ,varRanking( i , :) ]= sort( varimportance( B.Trees{i}) ,'descend')    
 end 
+
