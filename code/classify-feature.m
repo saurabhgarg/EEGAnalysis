@@ -41,7 +41,7 @@ xlabel 'Number of grown trees';
 ylabel 'Out-of-bag classification error';
 
 %%Feature selection
-varRanking = zeros( NTrees  , size(features,2) ) ; 
+varRanking = zeros( NTrees  , size(feats_norm,2) ) ; 
 
 for i=1:NTrees    
    [ val ,varRanking( i , :) ]= sort( varimportance( B.Trees{i}) ,'descend')    
